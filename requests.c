@@ -10,7 +10,7 @@
 #include "requests.h"
 
 char *compute_get_request(char *host, char *url, char *query_params,
-                            char **cookies, int cookies_count)
+                            char **cookies, int cookies_count, char** tokens, int tokens_count)
 {
     char *message = calloc(BUFLEN, sizeof(char));
     char *line = calloc(LINELEN, sizeof(char));
@@ -40,6 +40,17 @@ char *compute_get_request(char *host, char *url, char *query_params,
        compute_message(message, line);
     }
 
+    if(tokens != NULL){
+        memset(line, 0, LINELEN);
+        sprintf(line, "Authorization: Bearer ");
+        for(int i = 0; i < tokens_count; i++){
+            char add[1000];
+            sprintf(add, "%s", tokens[i]);
+            strcat(line, add);
+        }
+        compute_message(message, line);
+    }
+
     // Step 4: add final new line
     compute_message(message, "");
     free(line);
@@ -48,7 +59,7 @@ char *compute_get_request(char *host, char *url, char *query_params,
 }
 
 char *compute_post_request(char *host, char *url, char* content_type, char **body_data,
-                            int body_data_fields_count, char **cookies, int cookies_count)
+                            int body_data_fields_count, char **cookies, int cookies_count, char** tokens, int tokens_count)
 {
     char *message = calloc(BUFLEN, sizeof(char));
     char *line = calloc(LINELEN, sizeof(char));
@@ -63,7 +74,7 @@ char *compute_post_request(char *host, char *url, char* content_type, char **bod
     memset(line, 0, LINELEN);
     sprintf(line, "Host: %s", host);
     compute_message(message, line);
-    
+
     /* Step 3: add necessary headers (Content-Type and Content-Length are mandatory)
             in order to write Content-Length you must first compute the message size
     */
@@ -94,6 +105,91 @@ char *compute_post_request(char *host, char *url, char* content_type, char **bod
        }
        compute_message(message, line);
     }
+
+    if(tokens != NULL){
+        memset(line, 0, LINELEN);
+        sprintf(line, "Authorization: Bearer ");
+        for(int i = 0; i < tokens_count; i++){
+            char add[1000];
+            sprintf(add, "%s", tokens[i]);
+            strcat(line, add);
+        }
+        compute_message(message, line);
+    }
+
+
+    // Step 5: add new line at end of header
+    compute_message(message, "");
+
+    // Step 6: add the actual payload data
+    memset(line, 0, LINELEN);
+    if(body_data != NULL){
+        compute_message(message, body_data_buffer);
+    }
+    
+    free(line);
+    return message;
+}
+
+char *compute_delete_request(char *host, char *url, char* content_type, char **body_data,
+                            int body_data_fields_count, char **cookies, int cookies_count, char** tokens, int tokens_count)
+{
+    char *message = calloc(BUFLEN, sizeof(char));
+    char *line = calloc(LINELEN, sizeof(char));
+    char *body_data_buffer = calloc(LINELEN, sizeof(char));
+
+    // Step 1: write the method name, URL and protocol type
+    memset(line, 0, LINELEN);
+    sprintf(line, "DELETE %s HTTP/1.1", url);
+    compute_message(message, line);
+    
+    // Step 2: add the host
+    memset(line, 0, LINELEN);
+    sprintf(line, "Host: %s", host);
+    compute_message(message, line);
+
+    /* Step 3: add necessary headers (Content-Type and Content-Length are mandatory)
+            in order to write Content-Length you must first compute the message size
+    */
+    memset(line ,0, LINELEN);
+    sprintf(line, "Content-Type: %s", content_type);
+    compute_message(message, line);
+
+    if(body_data != NULL){
+        memset(body_data_buffer, 0, LINELEN);
+        for(int i = 0; i < body_data_fields_count; i++){
+            char extra[100];
+            sprintf(extra, "%s", body_data[i]);
+            strcat(body_data_buffer, extra);
+        }
+    }
+    memset(line, 0, LINELEN);
+    sprintf(line, "Content-Length: %ld", strlen(body_data_buffer));
+    compute_message(message, line);
+
+    // Step 4 (optional): add cookies
+    if (cookies != NULL) {
+       memset(line, 0, LINELEN);
+       sprintf(line, "Cookie: ");
+       for(int i = 0; i < cookies_count; i++){
+            char add[100];
+            sprintf(add, "%s;", cookies[i]);
+            strcat(line, add);
+       }
+       compute_message(message, line);
+    }
+
+    if(tokens != NULL){
+        memset(line, 0, LINELEN);
+        sprintf(line, "Authorization: Bearer ");
+        for(int i = 0; i < tokens_count; i++){
+            char add[1000];
+            sprintf(add, "%s", tokens[i]);
+            strcat(line, add);
+        }
+        compute_message(message, line);
+    }
+
 
     // Step 5: add new line at end of header
     compute_message(message, "");
