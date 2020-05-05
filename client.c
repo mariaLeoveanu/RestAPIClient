@@ -85,9 +85,7 @@ int main(int argc, char *argv[])
     		 }
     		printf("%s\n", response);
     		
-    	}
-
-    	if(strcmp(command, "login") == 0){
+    	} else if(strcmp(command, "login") == 0){
 			
     		JSON_Value *root_value = json_value_init_object();
     		JSON_Object *root_object = json_value_get_object(root_value);
@@ -131,8 +129,8 @@ int main(int argc, char *argv[])
     		char* end_pattern = ";";
      		cookies = extract_info_response(start_pattern, end_pattern, response);  
      		printf("Extracted cookie:%s\n", cookies);  		
-    	}
-    	if(strcmp(command, "enter_library") == 0){
+
+    	}else if(strcmp(command, "enter_library") == 0){
 
      		message = compute_get_request("3.8.116.10", "/api/v1/tema/library/access", NULL, &cookies, 1, NULL, 0);
      		printf("%s\n", message);
@@ -155,9 +153,7 @@ int main(int argc, char *argv[])
      		token = extract_info_response(start_pattern, end_pattern, response);
      		printf("Extracted token:%s\n", token);
      		
-    	}
-
-    	if(strcmp(command, "get_books") == 0){
+    	} else if(strcmp(command, "get_books") == 0){
     		
     		message = compute_get_request("3.8.116.10", "/api/v1/tema/library/books", NULL, NULL, 0, &token, 1);
     		printf("%s\n", message);
@@ -171,11 +167,9 @@ int main(int argc, char *argv[])
     			response = receive_from_server(sockfd);
     		}
     		printf("%s\n", response);
-    	}
+    	} else if(strcmp(command, "add_book") == 0){
 
-    	if(strcmp(command, "add_book") == 0){
-
-    		char *title, *author, *genre, *publisher;
+    		char *title, *author, *genre, *publisher, *page_count_string;
     		char* cont_type = "application/json";
     		char* book_info[1];
     		int page_count;
@@ -184,6 +178,7 @@ int main(int argc, char *argv[])
     		author = malloc(sizeof(char) * 101);
     		genre = malloc(sizeof(char) * 101);
     		publisher = malloc(sizeof(char) * 101);
+    		page_count_string = malloc(sizeof(char) * 101);
 
     		JSON_Value *root_value = json_value_init_object();
     		JSON_Object *root_object = json_value_get_object(root_value);
@@ -195,7 +190,13 @@ int main(int argc, char *argv[])
     	    printf("genre:");
     	    scanf("%s", genre);
     	    printf("page_count:");
-    	    scanf("%d", &page_count);
+    	    scanf("%s", page_count_string);
+    	    while(atoi(page_count_string) == 0){
+    	    	printf("Not a valid input. Digits only!\n");
+    	    	printf("page_count:");
+    	    	scanf("%s", page_count_string);
+    	    }
+    	    page_count = atoi(page_count_string);
     	    printf("publisher:");
     	    scanf("%s", publisher);
 
@@ -221,9 +222,7 @@ int main(int argc, char *argv[])
 
     		printf("%s\n", response);
 
-    	}
-
-    	if(strcmp(command, "get_book") == 0){
+    	} else if(strcmp(command, "get_book") == 0){
     		
     		char* id = malloc(sizeof(char) * 101);
     		char* final_path = malloc(sizeof(char) * 101);
@@ -231,6 +230,11 @@ int main(int argc, char *argv[])
 
     		printf("id:");
     		scanf("%s", id);
+    		while(atoi(id) == 0){
+    	    	printf("Not a valid input. Digits only!\n");
+    	    	printf("id:");
+    	    	scanf("%s", id);
+    	    }
     		
     		strcpy(final_path, path);
     		strcat(final_path, id);
@@ -250,8 +254,7 @@ int main(int argc, char *argv[])
 
     		printf("%s\n", response);
 
-    	}
-    	if(strcmp(command, "delete_book") == 0){
+    	} else if(strcmp(command, "delete_book") == 0){
     		
     		char* id = malloc(sizeof(char) * 101);
     		char* final_path = malloc(sizeof(char) * 101);
@@ -259,6 +262,11 @@ int main(int argc, char *argv[])
 
     		printf("id:");
     		scanf("%s", id);
+    		while(atoi(id) == 0){
+    	    	printf("Not a valid input. Digits only!\n");
+    	    	printf("id:");
+    	    	scanf("%s", id);
+    	    }
     		
     		strcpy(final_path, path);
     		strcat(final_path, id);
@@ -278,7 +286,34 @@ int main(int argc, char *argv[])
 
     		printf("%s\n", response);
 
+    	} else if(strcmp(command, "logout") == 0){
+    		
+    		message = compute_get_request("3.8.116.10", "/api/v1/tema/auth/logout", NULL, &cookies, 1, NULL, 0);
+    		printf("%s\n", message);
+    		send_to_server(sockfd, message);
+    		response = receive_from_server(sockfd);
+    		while(strlen(response) == 0){
+    			message = compute_get_request("3.8.116.10", "/api/v1/tema/auth/logout", NULL, &cookies, 1, NULL, 0);
+    			printf("%s\n", message);
+    			sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
+    			send_to_server(sockfd, message);
+    			response = receive_from_server(sockfd);
+    		}
+    		printf("%s\n", response);
+
+    		free(cookies);
+    		free(token);
+
+    	}else if(strcmp(command, "exit") == 0){
+    		
+    		close_connection(sockfd);
+    		return 0;
+
+    	} else {
+    		printf("Not a valid command! Try again!\n");
     	}
+
+
 
     }
     
