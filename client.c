@@ -43,9 +43,48 @@ int main(int argc, char *argv[])
     command = malloc(sizeof(char) * 101);
     sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
         
-    // Ex 1.1: GET dummy from main server
+    
     while(1){
     	scanf("%s", command);
+
+    	if(strcmp(command, "register") == 0){
+
+    		JSON_Value *root_value = json_value_init_object();
+    		JSON_Object *root_object = json_value_get_object(root_value);
+    		char* login_data[1];
+    		char* cont_type = NULL;
+    		char* username;
+    		char* password;
+    	
+    		username = malloc(sizeof(char) * 101);
+    		password = malloc(sizeof(char) * 101);
+    	
+
+    		printf("username:");
+    		scanf("%s", username);
+    		printf("password:");
+    		scanf("%s", password);
+
+    		json_object_set_string(root_object, "username", username);
+    		json_object_set_string(root_object, "password", password);
+
+    		login_data[0] = json_serialize_to_string_pretty(root_value);
+    		cont_type = "application/json";
+    		
+    		message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/register", cont_type, login_data, 1, NULL, 0);
+    		printf("%s\n", message);
+    		send_to_server(sockfd, message);
+    		response = receive_from_server(sockfd);
+    		if(strlen(response) == 0){
+    		 	message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/register", cont_type, login_data, 1, NULL, 0);
+    		 	printf("%s\n", message);
+    		 	sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
+    		 	send_to_server(sockfd, message);
+    		 	response = receive_from_server(sockfd);
+    		 }
+    		printf("%s\n", response);
+    		
+    	}
 
     	if(strcmp(command, "login") == 0){
 			
@@ -76,6 +115,8 @@ int main(int argc, char *argv[])
     		send_to_server(sockfd, message);
     		response = receive_from_server(sockfd);
     		while(strlen(response) == 0){
+
+    			// while there is no response from server, restablish connection and try again
     			message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/login", cont_type, user_info, 1, NULL, 0);
      			printf("%s\n", message);
      			sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
@@ -84,22 +125,21 @@ int main(int argc, char *argv[])
      		}
     		printf("%s\n", response);
     		
-
+    		// extact cookie
     		char* start_pattern = "Set-Cookie: ";
     		char* end_pattern = ";";
      		cookies = extract_info_response(start_pattern, end_pattern, response);  
      		printf("Extracted cookie:%s\n", cookies);  		
     	}
     	if(strcmp(command, "enter_library") == 0){
-    		//cookies = "connect.sid=s%3AzXTvhSP0ZJSczbvbw9JE-BP-hMmlillB.R1RDYppmKzGn9dd66eXI%2BxQB8Q5EHni2V%2FyCl3MFKS8";
-     		printf("Extracted cookie:%s\n", cookies);
+
      		message = compute_get_request("3.8.116.10", "/api/v1/tema/library/access", NULL, &cookies, 1);
      		printf("%s\n", message);
-     		
      		send_to_server(sockfd, message);
      		response = receive_from_server(sockfd);
      		while(strlen(response) == 0){
-     			
+
+     			// while there is no response from server, restablish connection and try again
      			message = compute_get_request("3.8.116.10", "/api/v1/tema/library/access", NULL, &cookies, 1);
      			printf("%s\n", message);
      			sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
