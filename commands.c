@@ -23,6 +23,7 @@ char* extract_info_response(char *from, char* until, char* body){
 			result[end -start] = '\0';
 		}
 	}
+	
 	return result;
 }
 
@@ -58,14 +59,15 @@ void register_command(int* sockfd, char* message, char* response){
     cont_type = "application/json";
     		
     message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/register", cont_type, login_data, 1, NULL, 0, NULL, 0);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     if(strlen(response) == 0){
-    	message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/register", cont_type, login_data, 1, NULL, 0, NULL, 0);
-    	printf("%s\n", message);
     	response = restore_connection(sockfd, message, response);
     }
+   
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
 }
 
@@ -94,16 +96,15 @@ char* login_command(int* sockfd, char* message, char* response){
     user_info[0] = json_serialize_to_string_pretty(root_value);
 
     message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/login", cont_type, user_info, 1, NULL, 0, NULL, 0);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-
     	// while there is no response from server, restablish connection and try again
-    	message = compute_post_request("3.8.116.10", "/api/v1/tema/auth/login", cont_type, user_info, 1, NULL, 0, NULL, 0);
-     	printf("%s\n", message);
     	response = restore_connection(sockfd, message, response);
     }
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
     return response;
 }
@@ -111,37 +112,34 @@ char* login_command(int* sockfd, char* message, char* response){
 char* enter_library_command(int* sockfd, char* message, char* response, char* cookies){
 
 	message = compute_get_request("3.8.116.10", "/api/v1/tema/library/access", NULL, &cookies, 1, NULL, 0);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-
      	// while there is no response from server, restablish connection and try again
-     	message = compute_get_request("3.8.116.10", "/api/v1/tema/library/access", NULL, &cookies, 1, NULL, 0);
-     	printf("%s\n", message);
-    	response = restore_connection(sockfd, message, response);
+     	response = restore_connection(sockfd, message, response);
     }
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
     return response;
 }
 
 void get_books_command(int* sockfd, char* message, char* response, char* token){
 	message = compute_get_request("3.8.116.10", "/api/v1/tema/library/books", NULL, NULL, 0, &token, 1);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-    	message = compute_get_request("3.8.116.10", "/api/v1/tema/library/books", NULL, NULL, 0, &token, 1);
-    	printf("%s\n", message);
-    	//sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
-    	//send_to_server(sockfd, message);
     	response = restore_connection(sockfd, message, response);
     }
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
 }
 
 void add_book_command(int* sockfd, char* message, char* response, char* token){
-	char *title, *author, *genre, *publisher, *page_count_string;
+	char *title, *author, *genre, *publisher, *page_count_string, *temp;
     char* cont_type = "application/json";
     char* book_info[1];
     int page_count;
@@ -151,26 +149,36 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
     genre = malloc(sizeof(char) * 101);
     publisher = malloc(sizeof(char) * 101);
     page_count_string = malloc(sizeof(char) * 101);
+    temp = malloc(sizeof(char) * 101);
 
     JSON_Value *root_value = json_value_init_object();
     JSON_Object *root_object = json_value_get_object(root_value);
 
     printf("title:");
-    scanf("%s", title);
+    scanf("%c",temp);
+    scanf("%[^\n]", title);
+
     printf("author:");
-    scanf("%s", author);
+    scanf("%c",temp);
+    scanf("%[^\n]", author);
+
     printf("genre:");
-    scanf("%s", genre);
+    scanf("%c",temp);
+    scanf("%[^\n]", genre);
+
     printf("page_count:");
     scanf("%s", page_count_string);
     while(atoi(page_count_string) == 0){
+    	printf("\t\t--------- WARNING ----------\n");
     	printf("Not a valid input. Digits only!\n");
     	printf("page_count:");
     	scanf("%s", page_count_string);
     }
     page_count = atoi(page_count_string);
+
     printf("publisher:");
-    scanf("%s", publisher);
+    scanf("%c",temp);
+    scanf("%[^\n]", publisher);
 
     json_object_set_string(root_object, "title", title);
     json_object_set_string(root_object, "author", author);
@@ -181,15 +189,14 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
     book_info[0] = json_serialize_to_string_pretty(root_value);
 
     message = compute_post_request("3.8.116.10", "/api/v1/tema/library/books", cont_type, book_info, 1, NULL, 0, &token, 1);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-    	message = compute_post_request("3.8.116.10", "/api/v1/tema/library/books", cont_type, book_info, 1, NULL, 0, &token, 1);
-    	printf("%s\n", message);
     	response = restore_connection(sockfd, message, response);
     }
-
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
 }
 
@@ -202,6 +209,7 @@ void get_book_command(int* sockfd, char* message, char* response, char* token){
 	scanf("%s", id);
 
 	while(atoi(id) == 0){
+		printf("\t\t--------- WARNING ----------\n");
    		printf("Not a valid input. Digits only!\n");
 	    printf("id:");
     	scanf("%s", id);
@@ -209,18 +217,18 @@ void get_book_command(int* sockfd, char* message, char* response, char* token){
     		
     strcpy(final_path, path);
     strcat(final_path, id);
-    printf("%s\n", final_path);
+   
 
     message = compute_get_request("3.8.116.10", final_path, NULL, NULL, 0, &token, 1);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-		message = compute_get_request("3.8.116.10", final_path, NULL, NULL, 0, &token, 1);    			
-		printf("%s\n", message);
     	response = restore_connection(sockfd, message, response);
     }
 
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
 }
 
@@ -232,6 +240,7 @@ void delete_book_command(int* sockfd, char* message, char* response, char* token
     printf("id:");
     scanf("%s", id);
     while(atoi(id) == 0){
+    	printf("\t\t--------- WARNING ----------\n");
     	printf("Not a valid input. Digits only!\n");
     	printf("id:");
     	scanf("%s", id);
@@ -239,31 +248,29 @@ void delete_book_command(int* sockfd, char* message, char* response, char* token
     		
     strcpy(final_path, path);
     strcat(final_path, id);
-    printf("%s\n", final_path);
 
     message = compute_delete_request("3.8.116.10", final_path, NULL, NULL, 0, NULL, 0, &token, 1);
-    printf("%s\n", message);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
+    printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-		message = compute_delete_request("3.8.116.10", final_path, NULL, NULL, 0, NULL, 0, &token, 1);    			
-		printf("%s\n", message);
     	response = restore_connection(sockfd, message, response);
     }
-
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
 }
 
 void logout_command(int* sockfd, char* message, char* response, char* cookies){
-
+	
 	message = compute_get_request("3.8.116.10", "/api/v1/tema/auth/logout", NULL, &cookies, 1, NULL, 0);
+    printf("\t\t---------- SENT MESSAGE ----------\n");
     printf("%s\n", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     while(strlen(response) == 0){
-    	message = compute_get_request("3.8.116.10", "/api/v1/tema/auth/logout", NULL, &cookies, 1, NULL, 0);
-    	printf("%s\n", message);
     	response = restore_connection(sockfd, message, response);
     }
+    printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
 }
