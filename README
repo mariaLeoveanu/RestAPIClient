@@ -21,13 +21,12 @@ similarly to how the cookies are added to the header.
 Here I have moved the actual process of sending & receiving the messages for
 each request so that the client code is easier to follow. Besides these
 functions, I have 2 more called extract_info_response and restore_connection.
-The first one
-receives 2 strings and a text in wich to search in and returns the target text.
-I used it to extract the token and cookies from the response, as I knew already
-how the header looked. Therefore, to extract the cookie I search in the
-response from the server the string "Cookie:"
-and extract the string until ";". restore_connection is called in each function
-below when the response from the server is empty. 
+The first one receives 2 strings and a text in wich to search in and returns 
+the target text. I used it to extract the token and cookies from the response, 
+as I knew already how the header looked. Therefore, to extract the cookie I 
+search in the response from the server the string "Cookie:" and extract the 
+string until ";". restore_connection is called in each function below when the 
+response from the server is empty. 
 
 All functions written for different commands from the user are the
 same, but with slight changes related to the structure of the request. For
@@ -45,8 +44,7 @@ connection and sends the request again.
 Here is the main logic of the program. In an infinite loop, the client reads
 from stdin commands from the user. Based on the command, it falls in one of the
 "if" branches. In case of an invalid command (login when a user is already
-logged
-in/logout when no user is logged out etc.), I chose to display a message from
+logged in/logout when no user is logged out etc.), I chose to display a message from
 the client and not send the message further to the server. To keep track of
 these invalid cases, I have 2 flags: logged and recv_token. logged is used for
 invalid login/logout requests. It is set to 1 only when the login request
