@@ -9,6 +9,10 @@
 #include "helpers.h"
 #include "requests.h"
 #include "parson.h"
+#define PORT 8080
+#define COMMAND_SIZE 101
+#define MESSAGE_SIZE 10000
+
 
 // helper function that returns content from HTTP response 
 // <AAA>Target<BBB> => extracts Target between <AAA> and <BBB>
@@ -170,6 +174,10 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
     scanf("%c",temp);
     scanf("%[^\n]", genre);
 
+    printf("publisher:");
+    scanf("%c",temp);
+    scanf("%[^\n]", publisher);
+
     printf("page_count:");
     scanf("%s", page_count_string);
     // if input for number of pages is not int
@@ -181,10 +189,6 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
     	scanf("%s", page_count_string);
     }
     page_count = atoi(page_count_string);
-
-    printf("publisher:");
-    scanf("%c",temp);
-    scanf("%[^\n]", publisher);
 
     json_object_set_string(root_object, "title", title);
     json_object_set_string(root_object, "author", author);

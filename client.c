@@ -10,6 +10,9 @@
 #include "requests.h"
 #include "parson.h"
 #include "commands.h"
+#define PORT 8080
+#define COMMAND_SIZE 101
+#define MESSAGE_SIZE 10000
 
 int main(int argc, char *argv[])
 {

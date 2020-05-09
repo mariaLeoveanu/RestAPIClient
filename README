@@ -1,0 +1,55 @@
+    +-+-+-+ +-+-+-+-+-+-+
+	|W|e|b| |C|l|i|e|n|t|
+	+-+-+-+ +-+-+-+-+-+-+
+
+Name: Maria-Alexandra Leoveanu
+Group: 323CA
+
+Code structure:
+
+For this assignment, I started from the code provided in lab 10. I added
+over this code (to be more specific, in requests.c & requests.h) a function
+called compute_delete_request which is similar to compute_post_request. 
+Moreover, Iadded in compute_get_request and compute_post_request 2 extra 
+parameters: tokens and tokens_count that are used to add the JWT token 
+similarly to how the cookies are added to the header. 
+
+
+█████╗    commands.c & commands.h
+╚════╝
+
+Here I have moved the actual process of sending & receiving the messages for
+each request so that the client code is easier to follow. Besides these
+functions, I have 2 more called extract_info_response and restore_connection.
+The first one
+receives 2 strings and a text in wich to search in and returns the target text.
+I used it to extract the token and cookies from the response, as I knew already
+how the header looked. Therefore, to extract the cookie I search in the
+response from the server the string "Cookie:"
+and extract the string until ";". restore_connection is called in each function
+below when the response from the server is empty. 
+
+All functions written for different commands from the user are the
+same, but with slight changes related to the structure of the request. For
+the requests which needed user input I used parson.h to create the JSON object
+and pass it as a string to the server. Depending on the command, the server
+requests some kind of authentication: cookie/token, which are added in
+compute_get_request/compute_post_request. After the message is sent, the client
+receives the response, and if its content is empty, then it restores the
+connection and sends the request again. 
+
+
+█████╗    client.c
+╚════╝
+
+Here is the main logic of the program. In an infinite loop, the client reads
+from stdin commands from the user. Based on the command, it falls in one of the
+"if" branches. In case of an invalid command (login when a user is already
+logged
+in/logout when no user is logged out etc.), I chose to display a message from
+the client and not send the message further to the server. To keep track of
+these invalid cases, I have 2 flags: logged and recv_token. logged is used for
+invalid login/logout requests. It is set to 1 only when the login request
+ends SUCCESSFULLY (no invalid credentials). recv_token is used to check if the
+user has access to the library and stop invalid commands such as delete_book
+with no token. When the user logs out, both flags are set back to 0. 
