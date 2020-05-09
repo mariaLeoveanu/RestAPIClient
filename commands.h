@@ -1,3 +1,8 @@
+#define PORT 8080
+#define COMMAND_SIZE 101
+#define MESSAGE_SIZE 10000
+
+
 char* extract_info_response(char *from, char* until, char* body);
 char* restore_connection(int* sockfd, char* message, char* response);
 void register_command(int* sockfd, char* message, char* response);

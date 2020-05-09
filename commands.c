@@ -27,12 +27,14 @@ char* extract_info_response(char *from, char* until, char* body){
 	return result;
 }
 
+// function that restores connection
 char* restore_connection(int* sockfd, char* message, char* response){
-	*sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
+	*sockfd = open_connection("3.8.116.10", PORT, AF_INET, SOCK_STREAM, 0);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
     return response;
 }
+
 
 void register_command(int* sockfd, char* message, char* response){
 
@@ -43,8 +45,8 @@ void register_command(int* sockfd, char* message, char* response){
     char* username;
     char* password;
     	
-    username = malloc(sizeof(char) * 101);
-    password = malloc(sizeof(char) * 101);
+    username = malloc(sizeof(char) * COMMAND_SIZE);
+    password = malloc(sizeof(char) * COMMAND_SIZE);
     	
 
     printf("username:");
@@ -55,6 +57,7 @@ void register_command(int* sockfd, char* message, char* response){
     json_object_set_string(root_object, "username", username);
     json_object_set_string(root_object, "password", password);
 
+    // add to login data string json
     login_data[0] = json_serialize_to_string_pretty(root_value);
     cont_type = "application/json";
     		
@@ -63,6 +66,7 @@ void register_command(int* sockfd, char* message, char* response){
     printf("%s", message);
     send_to_server(*sockfd, message);
     response = receive_from_server(*sockfd);
+    // if the client doesn't get a response => tries to restore the connection
     if(strlen(response) == 0){
     	response = restore_connection(sockfd, message, response);
     }
@@ -80,9 +84,8 @@ char* login_command(int* sockfd, char* message, char* response){
     char* username;
     char* password;
 
-    username = malloc(sizeof(char) * 101);
-    password = malloc(sizeof(char) * 101);
-
+    username = malloc(sizeof(char) * COMMAND_SIZE);
+    password = malloc(sizeof(char) * COMMAND_SIZE);
 
     // read user input
     printf("username:");
@@ -122,6 +125,7 @@ char* enter_library_command(int* sockfd, char* message, char* response, char* co
     }
     printf("\t\t---------- RECEIVED MESSAGE ----------\n");
     printf("%s\n", response);
+    // token is extracted from this response in client.c
     return response;
 }
 
@@ -144,12 +148,12 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
     char* book_info[1];
     int page_count;
 
-    title = malloc(sizeof(char) * 101);
-    author = malloc(sizeof(char) * 101);
-    genre = malloc(sizeof(char) * 101);
-    publisher = malloc(sizeof(char) * 101);
-    page_count_string = malloc(sizeof(char) * 101);
-    temp = malloc(sizeof(char) * 101);
+    title = malloc(sizeof(char) * COMMAND_SIZE);
+    author = malloc(sizeof(char) * COMMAND_SIZE);
+    genre = malloc(sizeof(char) * COMMAND_SIZE);
+    publisher = malloc(sizeof(char) * COMMAND_SIZE);
+    page_count_string = malloc(sizeof(char) * COMMAND_SIZE);
+    temp = malloc(sizeof(char) * COMMAND_SIZE);
 
     JSON_Value *root_value = json_value_init_object();
     JSON_Object *root_object = json_value_get_object(root_value);
@@ -168,6 +172,8 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
 
     printf("page_count:");
     scanf("%s", page_count_string);
+    // if input for number of pages is not int
+    // display warning and input prompt again
     while(atoi(page_count_string) == 0){
     	printf("\t\t--------- WARNING ----------\n");
     	printf("Not a valid input. Digits only!\n");
@@ -201,13 +207,14 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
 }
 
 void get_book_command(int* sockfd, char* message, char* response, char* token){
-	char* id = malloc(sizeof(char) * 101);
-    char* final_path = malloc(sizeof(char) * 101);
+	char* id = malloc(sizeof(char) * COMMAND_SIZE);
+    char* final_path = malloc(sizeof(char) * COMMAND_SIZE);
     char* path = "/api/v1/tema/library/books/";
 
 	printf("id:");
 	scanf("%s", id);
 
+	// check for a valid id(only digits)
 	while(atoi(id) == 0){
 		printf("\t\t--------- WARNING ----------\n");
    		printf("Not a valid input. Digits only!\n");
@@ -218,7 +225,6 @@ void get_book_command(int* sockfd, char* message, char* response, char* token){
     strcpy(final_path, path);
     strcat(final_path, id);
    
-
     message = compute_get_request("3.8.116.10", final_path, NULL, NULL, 0, &token, 1);
     printf("\t\t---------- SENT MESSAGE ----------\n");
     printf("%s", message);
@@ -233,8 +239,8 @@ void get_book_command(int* sockfd, char* message, char* response, char* token){
 }
 
 void delete_book_command(int* sockfd, char* message, char* response, char* token){
-	char* id = malloc(sizeof(char) * 101);
-    char* final_path = malloc(sizeof(char) * 101);
+	char* id = malloc(sizeof(char) * COMMAND_SIZE);
+    char* final_path = malloc(sizeof(char) * COMMAND_SIZE);
     char* path = "/api/v1/tema/library/books/";
 
     printf("id:");
@@ -245,7 +251,8 @@ void delete_book_command(int* sockfd, char* message, char* response, char* token
     	printf("id:");
     	scanf("%s", id);
     }
-    		
+    
+    // create path for delete request with input from user	
     strcpy(final_path, path);
     strcat(final_path, id);
 

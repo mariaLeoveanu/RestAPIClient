@@ -11,9 +11,6 @@
 #include "parson.h"
 #include "commands.h"
 
-
-
-
 int main(int argc, char *argv[])
 {
     char* message;
@@ -22,11 +19,11 @@ int main(int argc, char *argv[])
     char* cookies;
     char* token;
     int sockfd, logged = 0, recv_token = 0;
-    command = malloc(sizeof(char) * 101);
-    message = malloc(sizeof(char) * 10000);
+    command = malloc(sizeof(char) * COMMAND_SIZE);
+    message = malloc(sizeof(char) * MESSAGE_SIZE);
    
 
-    sockfd = open_connection("3.8.116.10", 8080, AF_INET, SOCK_STREAM, 0);
+    sockfd = open_connection("3.8.116.10", PORT, AF_INET, SOCK_STREAM, 0);
   
     while(1){
     	scanf("%s", command);
@@ -34,18 +31,22 @@ int main(int argc, char *argv[])
     		register_command(&sockfd, message, response);
     	} else if(strcmp(command, "login") == 0){
     			if(logged == 0){
+    				// logged = 0 => no user is logged and the user can login 
     				char* start_pattern = "Set-Cookie: ";
     				char* end_pattern = ";";
     				response = login_command(&sockfd, message, response);
      				cookies = extract_info_response(start_pattern, end_pattern, response);
-     				 if(strstr(response, "HTTP/1.1 200 OK") != NULL){
+     				if(strstr(response, "HTTP/1.1 200 OK") != NULL){
+     					// set logged only if the login ended successfully
      				 	logged = 1;
-     				 } else {
+     				} else {
      				 	printf("\t\t--------- WARNING ----------\n");
-    					 printf("Incorrect username and password!\n");
-     				 }
+    					printf("Incorrect username and password!\n");
+     				}
      				
     			} else {
+    				// if a user is already logged in, display warning message 
+    				// the client does not compute + send login request in this case
     				printf("\t\t--------- WARNING ----------\n");
     				printf("You are already logged in! Log out before switching accounts.\n");
     			}
@@ -59,6 +60,7 @@ int main(int argc, char *argv[])
      			char* end_pattern = "\"}";
      			response = enter_library_command(&sockfd, message, response, cookies);
      			token = extract_info_response(start_pattern, end_pattern, response);
+     			// recv_token is set when token is extracted & reset when user logs out
      			recv_token = 1;
     		}
     		
@@ -97,15 +99,10 @@ int main(int argc, char *argv[])
     		} else {
     			
     			logout_command(&sockfd, message, response, cookies);
-    		
-    			//free(cookies);
-    			//free(token);
-    		
+    			// reset flags
     			logged = 0;
     			recv_token = 0;
-    			
     		}
-    		
     	}else if(strcmp(command, "exit") == 0){
     		close_connection(sockfd);
     		return 0;
