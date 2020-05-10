@@ -1,6 +1,6 @@
-    	+-+-+-+ +-+-+-+-+-+-+
-	|W|e|b| |C|l|i|e|n|t|
-	+-+-+-+ +-+-+-+-+-+-+
++-+-+-+ +-+-+-+-+-+-+
+|W|e|b| |C|l|i|e|n|t|
++-+-+-+ +-+-+-+-+-+-+
 
 Name: Maria-Alexandra Leoveanu
 Group: 323CA
@@ -10,7 +10,7 @@ Code structure:
 For this assignment, I started from the code provided in lab 10. I added
 over this code (to be more specific, in requests.c & requests.h) a function
 called compute_delete_request which is similar to compute_post_request. 
-Moreover, Iadded in compute_get_request and compute_post_request 2 extra 
+Moreover, I added in compute_get_request and compute_post_request 2 extra 
 parameters: tokens and tokens_count that are used to add the JWT token 
 similarly to how the cookies are added to the header. 
 

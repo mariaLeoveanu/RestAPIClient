@@ -53,9 +53,9 @@ void register_command(int* sockfd, char* message, char* response){
     password = malloc(sizeof(char) * COMMAND_SIZE);
     	
 
-    printf("username:");
+    printf("username=");
     scanf("%s", username);
-    printf("password:");
+    printf("password=");
     scanf("%s", password);
 
     json_object_set_string(root_object, "username", username);
@@ -92,9 +92,9 @@ char* login_command(int* sockfd, char* message, char* response){
     password = malloc(sizeof(char) * COMMAND_SIZE);
 
     // read user input
-    printf("username:");
+    printf("username=");
     scanf("%s", username);
-    printf("password:");
+    printf("password=");
     scanf("%s", password);
 
     // create json body
@@ -162,30 +162,30 @@ void add_book_command(int* sockfd, char* message, char* response, char* token){
     JSON_Value *root_value = json_value_init_object();
     JSON_Object *root_object = json_value_get_object(root_value);
 
-    printf("title:");
+    printf("title=");
     scanf("%c",temp);
     scanf("%[^\n]", title);
 
-    printf("author:");
+    printf("author=");
     scanf("%c",temp);
     scanf("%[^\n]", author);
 
-    printf("genre:");
+    printf("genre=");
     scanf("%c",temp);
     scanf("%[^\n]", genre);
 
-    printf("publisher:");
+    printf("publisher=");
     scanf("%c",temp);
     scanf("%[^\n]", publisher);
 
-    printf("page_count:");
+    printf("page_count=");
     scanf("%s", page_count_string);
     // if input for number of pages is not int
     // display warning and input prompt again
     while(atoi(page_count_string) == 0){
     	printf("\t\t--------- WARNING ----------\n");
     	printf("Not a valid input. Digits only!\n");
-    	printf("page_count:");
+    	printf("page_count=");
     	scanf("%s", page_count_string);
     }
     page_count = atoi(page_count_string);
@@ -214,20 +214,22 @@ void get_book_command(int* sockfd, char* message, char* response, char* token){
 	char* id = malloc(sizeof(char) * COMMAND_SIZE);
     char* final_path = malloc(sizeof(char) * COMMAND_SIZE);
     char* path = "/api/v1/tema/library/books/";
+    char* int_as_string = malloc(sizeof(char) * COMMAND_SIZE);
 
-	printf("id:");
+	printf("id=");
 	scanf("%s", id);
 
 	// check for a valid id(only digits)
 	while(atoi(id) == 0){
 		printf("\t\t--------- WARNING ----------\n");
    		printf("Not a valid input. Digits only!\n");
-	    printf("id:");
+	    printf("id=");
     	scanf("%s", id);
     }
+    sprintf(int_as_string, "%d", atoi(id));
     		
     strcpy(final_path, path);
-    strcat(final_path, id);
+    strcat(final_path, int_as_string);
    
     message = compute_get_request("3.8.116.10", final_path, NULL, NULL, 0, &token, 1);
     printf("\t\t---------- SENT MESSAGE ----------\n");
@@ -246,19 +248,21 @@ void delete_book_command(int* sockfd, char* message, char* response, char* token
 	char* id = malloc(sizeof(char) * COMMAND_SIZE);
     char* final_path = malloc(sizeof(char) * COMMAND_SIZE);
     char* path = "/api/v1/tema/library/books/";
+    char* int_as_string = malloc(sizeof(char) * COMMAND_SIZE);
 
-    printf("id:");
+    printf("id=");
     scanf("%s", id);
     while(atoi(id) == 0){
     	printf("\t\t--------- WARNING ----------\n");
     	printf("Not a valid input. Digits only!\n");
-    	printf("id:");
+    	printf("id=");
     	scanf("%s", id);
     }
+    sprintf(int_as_string, "%d", atoi(id));
     
     // create path for delete request with input from user	
     strcpy(final_path, path);
-    strcat(final_path, id);
+    strcat(final_path, int_as_string);
 
     message = compute_delete_request("3.8.116.10", final_path, NULL, NULL, 0, NULL, 0, &token, 1);
     printf("\t\t---------- SENT MESSAGE ----------\n");
